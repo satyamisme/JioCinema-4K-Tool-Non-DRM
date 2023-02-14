@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+# visit https://tool.lu/pyc/ for more information
+# Version: Python 3.9
+
+from __future__ import unicode_literals
+import requests
+import sys
+import os
+import os.path as os
+import glob
+import argparse
+import subprocess
+currentFile = __file__
+realPath = os.path.realpath(currentFile)
+dirPath = os.path.dirname(realPath)
+dirName = os.path.basename(dirPath)
+aria2cexe = dirPath + '/binaries/aria2c.exe'
+youtubedlexe = dirPath + '/binaries/yt-dlp.exe'
+mkvmergeexe = dirPath + '/binaries/mkvmerge.exe'
+output = dirPath + '/output'
+temp = dirPath + '/temp'
+invideo = dirPath + '/temp/video.mp4'
+insub = dirPath + '/temp/subtitle.srt'
+direc = dirPath + '/output/'
+
+def TB(mp4url, name, se, qual, number):
+    name = name
+    new_name = number + name + '.' + qual + '.JIO.WEB-DL.H.264-SKS.mp4'
+    old_name = new_name.replace('mp4', 'mkv').replace('132', '130p').replace('248', '240p').replace('300', '240p').replace('464', '240p').replace('696', '360p').replace('896', '480p').replace('1328', '720p').replace('2492', '720p').replace('4192', '1080p').replace('8192', '1080p').replace('12192', '1080p').replace('15192', '2160p').replace('18192', '2160p').replace('232', '360p').replace('448', '360p').replace('864', '360p').replace('1328', '360p').replace('6192', '1080p').replace('1728', '480p').replace('2428', '480p').replace('3128', '720p').replace('4128', '720p').replace('6128', '720p').replace('8128', '1080p').replace('9192', '1080p')
+    print(old_name)
+    subprocess.run([
+        aria2cexe,
+        mp4url,
+        '--max-connection-per-server=16',
+        '--max-tries=0',
+        '--summary-interval=0',
+        '--console-log-level=error',
+        '--allow-overwrite=true',
+        '--download-result=hide',
+        '--dir',
+        output,
+        '-o',
+        old_name])
+    print('\nDone .....')
+
+
+def Ran(mp4url, name, qual, suburl):
+    pass
+# WARNING: Decompyle incomplete
+
+
+def jio_series(series_id, seriesnum):
+    headers = {
+        'os': 'iOS' }
+    metadata = requests.get('https://prod.media.jio.com/apis/common/v3/metamore/get/' + series_id + '/' + seriesnum, headers, **('headers',)).json()
+    name = metadata['episodes'][0]['name'].replace('.mp4', '')
+    series = metadata['name']
+    se = metadata['episodes'][0]['subtitle'].split('|')[0]
+    date = metadata['episodes'][0]['thumb'].split('/')
+    ids = metadata['episodes'][0]['id']
+    hls_url = 'http://jiobeats.cdn.jio.com/vod/_definst_/smil:vod/' + date[1] + '/' + date[2] + '/' + ids + '.smil/index.m3u8'
+    subprocess.run([
+        youtubedlexe,
+        '--quiet',
+        '--no-warnings',
+        hls_url,
+        '-F'])
+    print('\nQuality Codes: 112=130p, 132=130p, 248=240p, 300=240p, 464=240p, 696=360p, 896=480p, 1328=720p, 2492=720p, 4192=1080p, 6192=1080p, 8192=1080p, 12192=1080p, 15192=2160p, 18192=2160p')
+    qual = str(input('\nPlease Select Quality From Availale Streams : '))
+    jio_serie(series_id, qual, seriesnum)
+
+
+def jio_serie(series_id, qual, seriesnum):
+    headers = {
+        'os': 'iOS' }
+    metadata = requests.get('https://prod.media.jio.com/apis/common/v3/metamore/get/' + series_id + '/' + seriesnum, headers, **('headers',)).json()
+    for i in range(0, len(metadata['episodes'])):
+        name = metadata['episodes'][i]['name'].replace('.mp4', '')
+        number = metadata['episodes'][i]['subtitle'].split('|')[0]
+        name = name.replace('?', '')
+        se = metadata['episodes'][0]['subtitle'].split('|')[0]
+        date = metadata['episodes'][i]['image'].split('/')
+        ids = metadata['episodes'][i]['id']
+        mainurl = 'sldhnecdnems02.cdnsrv.jio.com'
+        mp4url = 'https://' + mainurl + '/jiobeats.cdn.jio.com/content/entry/data/' + date[0] + '/' + date[1] + '/' + ids + '_' + qual + '.mp4'
+        TB(mp4url, name, se, qual, number)
+
+
+def jio_movie(movie_id):
+    headers = {
+        'os': 'iOS' }
+    metadata = requests.get('https://prod.media.jio.com/apis/common/v3/metamore/get/' + movie_id, headers, **('headers',)).json()
+# WARNING: Decompyle incomplete
+
+
+def main():
+    description = 'Bigg Boss'
+    parser = argparse.ArgumentParser(description, **('description',))
+    parser.add_argument('type', str, 'Video type [series].', **('type', 'help'))
+    parser.add_argument('link', str, 'Video [Link/id]', **('type', 'help'))
+    args = parser.parse_args()
+    v_type = args.type
+    link = args.link
+    if 'https://' in link:
+        id = link.split('/')
+        id = id[8]
+    else:
+        id = link
+    if v_type == 'series':
+        seriesnum = str(input('\n Please Enter Season Number: '))
+        jio_series(id, seriesnum)
+    elif v_type == 'movie':
+        jio_movie(id)
+
+# WARNING: Decompyle incomplete
